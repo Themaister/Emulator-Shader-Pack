@@ -47,3 +47,22 @@ Pre-filtering:
    Most of these shaders are intended to be used with a non-filtered input. 
    Nearest-neighbor filtering on the textures themselves are preferred.
    Some shaders, like scanline will most likely prefer bilinear texture filtering.
+
+
+Genres:
+   There are several different types of shaders available, some of the relevant types are sorted into folders.
+
+   2x-classic:
+      These are the typical, classic filters usually run on CPU, such as HQ2x, 2xSaI, SuperEagle, etc, converted into shaders.
+
+   Blur:
+      Shaders focusing on bluring the output image.
+
+   Enhance:
+      Shaders focusing on enhancing the image quality through other means than bluring only. 
+
+   TV:
+      Shaders focusing on replicating the visual image of a game running on a CRT screen.
+
+   Misc:
+      Shaders that do not directly fit into any of the above categories.
