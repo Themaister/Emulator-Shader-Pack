@@ -1,0 +1,46 @@
+================================
+ -- Cg shader pack --
+================================
+
+This is a pack of pixel shaders intended for old school emulators. 
+Copyrights are held by the respective authors.
+The shaders are coded in the Cg language, suitable for both OpenGL and D3D.
+Most of these shaders are converted from other languages (GLSL, FX, HLSL, etc).
+
+The shaders all follow a convention which must be followed by the implementer of an OGL/D3D backend.
+
+Entry points:
+   Vertex: main_vertex
+   Fragment: main_fragment
+
+Texture unit:
+   All shaders work on texture unit 0 (the default). 2D textures must be used.
+   Power-of-two sized textures are recommended for optimal visual quality.
+   The shaders can deal with the actual picture data not filling out the entire texture.
+
+Uniforms:
+   Some parameters will need to be passed to all shaders, both vertex and fragment program.
+   A generic entry point for fragment shader will look like:
+
+   float4 main_fragment (float2 tex : TEXCOORD0, uniform input IN, uniform sampler2D s_p : TEXUNIT0) : COLOR
+   {}
+
+   The input is a struct looking like:
+   struct input
+   {
+      float2 video_size;
+      float2 texture_size;
+      float2 output_size;
+   };
+
+   IN.video_size: The size of the actual video data in the texture, 
+   e.g for a SNES this will be generally (256, 224) for normal resolution frames.
+
+   IN.texture_size: This is the size of the texture itself. Optimally power-of-two sized.
+
+   IN.output_size: The size of the video output. This is the size of the viewport shown on screen.
+
+Pre-filtering:
+   Most of these shaders are intended to be used with a non-filtered input. 
+   Nearest-neighbor filtering on the textures themselves are preferred.
+   Some shaders, like scanline will most likely prefer bilinear texture filtering.
