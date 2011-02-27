@@ -40,6 +40,9 @@ Uniforms:
 
    IN.output_size: The size of the video output. This is the size of the viewport shown on screen.
 
+   modelViewProj: This uniform needs to be set in vertex shader. 
+   It is a uniform for the current MVP transform.
+
 Pre-filtering:
    Most of these shaders are intended to be used with a non-filtered input. 
    Nearest-neighbor filtering on the textures themselves are preferred.
