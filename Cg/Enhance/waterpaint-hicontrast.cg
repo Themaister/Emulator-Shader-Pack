@@ -18,19 +18,19 @@ struct tex_coords
 
 struct input
 {
-  float2 video_size;
-  float2 texture_size;
-  float2 output_size;
+   float2 video_size;
+   float2 texture_size;
+   float2 output_size;
 };
 
 void main_vertex
 (
-   float4 position	: POSITION,
+   float4 position : POSITION,
    out float4 oPosition : POSITION,
    uniform float4x4 modelViewProj,
 
-   float4 color	: COLOR,
-   out float4 oColor    : COLOR,
+   float4 color : COLOR,
+   out float4 oColor : COLOR,
 
    float2 tex : TEXCOORD,
 
