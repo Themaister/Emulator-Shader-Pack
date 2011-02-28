@@ -81,6 +81,6 @@ float4 main_fragment (in tex_coords co, uniform input IN, uniform sampler2D s0 :
    float3 mid_vert = lerp(c10, c12, frac(tex.y * texsize.y + 0.5));
 
    float3 res = lerp(first, second, frac(tex.y * texsize.y + 0.5));
-   return float4(0.28 * (res + mid_horiz + mid_vert) + 4.7 * abs(res - lerp(mid_horiz, mid_vert, 0.5)), 1.0);
+   return saturate(float4(0.28 * (res + mid_horiz + mid_vert) + 4.7 * abs(res - lerp(mid_horiz, mid_vert, 0.5)), 1.0));
 }
 
