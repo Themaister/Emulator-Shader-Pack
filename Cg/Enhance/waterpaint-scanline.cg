@@ -68,8 +68,6 @@ void main_vertex
 
    sine = sine_factor (
       float2(
-         //grid_factor * 3.1415 * IN.output_size.x * IN.texture_size.x / IN.video_size.x,
-         //grid_factor * 3.1415 * IN.output_size.y * IN.texture_size.y / IN.video_size.y
          grid_factor * 3.1415 * IN.output_size.x * IN.texture_size.x / IN.video_size.x,
          grid_factor * 2.0 * 3.1415 * IN.texture_size.y
       )
