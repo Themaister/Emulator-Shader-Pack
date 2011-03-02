@@ -1,0 +1,146 @@
+ /*
+    cgwg's CRT shader
+
+    Copyright (C) 2010 cgwg
+
+    This program is free software; you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by the Free
+    Software Foundation; either version 2 of the License, or (at your option)
+    any later version.
+
+    (cgwg gave their consent to have their code distributed under the GPL in
+    this message:
+
+        http://board.byuu.org/viewtopic.php?p=26075#p26075
+
+        "Feel free to distribute my shaders under the GPL. After all, the
+        barrel distortion code was taken from the Curvature shader, which is
+        under the GPL."
+    )
+*/
+
+struct tex_coords
+{
+   float2 c01; 
+   float2 c11; 
+   float2 c21;
+   float2 c31;
+   float2 c02;
+   float2 c12; 
+   float2 c22;
+   float2 c32; 
+   float2 one;
+   float2 tex;
+   float mod_val;
+};
+
+struct input
+{
+   float2 video_size;
+   float2 texture_size;
+   float2 output_size;
+};
+
+void main_vertex
+(
+   float4 position : POSITION,
+   out float4 oPosition : POSITION,
+   uniform float4x4 modelViewProj,
+
+   float4 color : COLOR,
+   out float4 oColor : COLOR,
+
+   float2 tex : TEXCOORD,
+
+   uniform input IN,
+   out tex_coords coords
+)
+{
+   oPosition = mul(modelViewProj, position);
+   oColor = color;
+
+   float2 delta = 1.0 / IN.texture_size;
+   float dx = delta.x;
+   float dy = delta.y;
+
+   float2 tex_ = tex + float2(0.0, -0.5 * IN.video_size.y * delta.y / IN.output_size.y);
+   float mod_val = tex.x * IN.output_size.x * IN.texture_size.x / IN.video_size.x;
+
+   coords = tex_coords (
+      tex_ + float2(-dx, 0.0),
+      tex_ + float2(0.0, 0.0),
+      tex_ + float2(dx, 0.0),
+      tex_ + float2(2.0 * dx, 0.0),
+      tex_ + float2(-dx, dy),
+      tex_ + float2(0.0, dy),
+      tex_ + float2(dx, dy),
+      tex_ + float2(2.0 * dx, dy),
+      delta,
+      tex,
+      mod_val
+   );
+}
+
+
+#define TEX2D(c) tex2D(s0 ,(c))
+#define PI 3.141592653589
+#define gamma 2.7
+
+// Gotta love branchless :3
+float4 less_than(float4 vals, float4 condition)
+{
+   float4 res = float4(1.0) + condition - vals; 
+   return saturate(floor(res));
+}
+
+float4 main_fragment(in tex_coords co, uniform input IN, uniform sampler2D s0 : TEXUNIT0, float2 tex : TEXCOORD) : COLOR
+{
+   float2 xy = co.c11;
+
+   float2 one = co.one;
+
+   float2 rubyTextureSize = IN.texture_size;
+   float2 rubyInputSize = IN.video_size;
+   float2 rubyOutputSize = IN.output_size;
+
+   float2 uv_ratio = frac(xy * rubyTextureSize);
+   xy.x = floor(xy.x / one.x) * one.x;
+
+   float4 col, col2;
+   
+   float4 texels[8];
+   texels[0] = TEX2D(co.c01);
+   texels[1] = TEX2D(co.c11);
+   texels[2] = TEX2D(co.c21);
+   texels[3] = TEX2D(co.c31);
+   texels[4] = TEX2D(co.c02);
+   texels[5] = TEX2D(co.c12);
+   texels[6] = TEX2D(co.c22);
+   texels[7] = TEX2D(co.c32);
+
+   float4 coeffs = float4(1.0 + uv_ratio.x, uv_ratio.x, 1.0 - uv_ratio.x, 2.0 - uv_ratio.x);
+   float4 bvecs = less_than(abs(coeffs), float4(0.01));
+   coeffs = lerp((sin(PI * coeffs) * sin(PI * coeffs / 2.0)) / (coeffs * coeffs), float4(1.0), bvecs);
+   coeffs = coeffs / dot(coeffs, float(1.0));
+
+   col  = saturate(coeffs.x * texels[0] + coeffs.y * texels[1] + coeffs.z * texels[2] + coeffs.w * texels[3]);
+   col2 = saturate(coeffs.x * texels[4] + coeffs.y * texels[5] + coeffs.z * texels[6] + coeffs.w * texels[7]);
+
+   col = pow(col, float4(gamma));
+   col2 = pow(col2, float4(gamma));
+
+   float4 wid = float4(2.0) + 2.0 * pow(col, float4(4.0));
+   float4 weights = float4(uv_ratio.y / 0.3);
+   weights = 0.51 * exp(-pow(weights * sqrt(2.0 / wid), wid)) / float4(0.3) / (0.6 + 0.2 * wid);
+   wid = float4(2.0) + 2.0 * pow(col2, float4(4.0));
+   float4 weights2 = float4((1.0 - uv_ratio.y) / 0.3);
+   weights2 = 0.51 * exp(-pow(weights2 * sqrt(2.0 / wid), wid)) / float4(0.3) / (0.6 + 0.2 * wid);
+
+   float4 mcol = float4(1.0);
+   if (fmod(co.mod_val, 2.0) < 1.0)
+      mcol.g = 0.7;
+   else
+      mcol.rb = float2(0.7);
+
+   return pow(mcol * (col * weights + col2 * weights2), float4(1.0/2.2));
+}
