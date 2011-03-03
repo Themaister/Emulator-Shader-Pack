@@ -95,19 +95,17 @@ float4 less_than(float4 vals, float4 condition)
 
 float4 main_fragment(in tex_coords co, uniform input IN, uniform sampler2D s0 : TEXUNIT0, float2 tex : TEXCOORD) : COLOR
 {
-   float2 xy = co.c11;
-
-   float2 one = co.one;
-
    float2 rubyTextureSize = IN.texture_size;
    float2 rubyInputSize = IN.video_size;
    float2 rubyOutputSize = IN.output_size;
 
+   float2 xy = co.c11;
    float2 uv_ratio = frac(xy * rubyTextureSize);
-   xy.x = floor(xy.x / one.x) * one.x;
+   float4 coeffs = float4(1.0 + uv_ratio.x, uv_ratio.x, 1.0 - uv_ratio.x, 2.0 - uv_ratio.x);
+   float4 bvecs = less_than(abs(coeffs), float4(0.01));
 
-   float4 col, col2;
-   
+   float4 coeff_square_r = 1.0 / (coeffs * coeffs);
+
    float4 texels[8];
    texels[0] = TEX2D(co.c01);
    texels[1] = TEX2D(co.c11);
@@ -117,30 +115,52 @@ float4 main_fragment(in tex_coords co, uniform input IN, uniform sampler2D s0 : 
    texels[5] = TEX2D(co.c12);
    texels[6] = TEX2D(co.c22);
    texels[7] = TEX2D(co.c32);
+   float4x4 texes0 = float4x4(texels[0], texels[1], texels[2], texels[3]);
+   float4x4 texes1 = float4x4(texels[4], texels[5], texels[6], texels[7]);
 
-   float4 coeffs = float4(1.0 + uv_ratio.x, uv_ratio.x, 1.0 - uv_ratio.x, 2.0 - uv_ratio.x);
-   float4 bvecs = less_than(abs(coeffs), float4(0.01));
-   coeffs = lerp((sin(PI * coeffs) * sin(PI * coeffs / 2.0)) / (coeffs * coeffs), float4(1.0), bvecs);
+   float2 one = co.one;
+
+   coeffs = lerp((sin(PI * coeffs) * sin(0.5 * PI * coeffs)) * coeff_square_r, float4(1.0), bvecs);
+   xy.x = floor(xy.x / one.x) * one.x;
+
+   float4 col, col2;
+
    coeffs = coeffs / dot(coeffs, float(1.0));
 
-   col  = saturate(coeffs.x * texels[0] + coeffs.y * texels[1] + coeffs.z * texels[2] + coeffs.w * texels[3]);
-   col2 = saturate(coeffs.x * texels[4] + coeffs.y * texels[5] + coeffs.z * texels[6] + coeffs.w * texels[7]);
+   float4 weights = float4(3.33 * uv_ratio.y);
+   float4 weights2 = float4((1.0 - uv_ratio.y) * 3.33);
+
+   col = saturate(mul(coeffs, texes0));
+   col2 = saturate(mul(coeffs, texes1));
+
+   float4 wid = float4(2.0) + 2.0 * pow(col, float4(4.0));
+   float4 wid2 = float4(2.0) + 2.0 * pow(col2, float4(4.0));
 
    col = pow(col, float4(gamma));
    col2 = pow(col2, float4(gamma));
 
-   float4 wid = float4(2.0) + 2.0 * pow(col, float4(4.0));
-   float4 weights = float4(uv_ratio.y / 0.3);
-   weights = 0.51 * exp(-pow(weights * sqrt(2.0 / wid), wid)) / float4(0.3) / (0.6 + 0.2 * wid);
-   wid = float4(2.0) + 2.0 * pow(col2, float4(4.0));
-   float4 weights2 = float4((1.0 - uv_ratio.y) / 0.3);
-   weights2 = 0.51 * exp(-pow(weights2 * sqrt(2.0 / wid), wid)) / float4(0.3) / (0.6 + 0.2 * wid);
+   float4 sqrt1 = rsqrt(0.5 * wid);
+   float4 sqrt2 = rsqrt(0.5 * wid2);
+
+   float4 pow_mul1 = weights * sqrt1;
+   float4 pow_mul2 = weights2 * sqrt2;
+
+   float4 div1 = 0.392 + 0.1320 * wid;
+   float4 div2 = 0.392 + 0.1320 * wid2;
+
+   float4 pow1 = -pow(pow_mul1, wid);
+   float4 pow2 = -pow(pow_mul2, wid2);
+
+   weights = exp(pow1) / div1;
+   weights2 = exp(pow2) / div2;
+
+   float4 multi = col * weights + col2 * weights2;
 
    float4 mcol = float4(1.0);
-   if (fmod(co.mod_val, 2.0) < 1.0)
+   if (fmod(co.mod_val.x, 2.0) < 1.0)
       mcol.g = 0.7;
    else
       mcol.rb = float2(0.7);
 
-   return pow(mcol * (col * weights + col2 * weights2), float4(1.0/2.2));
+   return pow(mcol * multi, float4(0.454545));
 }
