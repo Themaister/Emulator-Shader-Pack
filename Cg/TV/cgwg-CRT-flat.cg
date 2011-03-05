@@ -21,16 +21,11 @@
 
 struct tex_coords
 {
-   float2 c01; 
-   float2 c11; 
-   float2 c21;
-   float2 c31;
-   float2 c02;
-   float2 c12; 
-   float2 c22;
-   float2 c32; 
-   float mod_factor;
-   float2 ratio_scale;
+   float4 c01_11; 
+   float4 c21_31;
+   float4 c02_12;
+   float4 c22_32;
+   float3 mod_factor_ratio_scale;
 };
 
 struct input
@@ -63,16 +58,11 @@ void main_vertex
    float dy = delta.y;
 
    coords = tex_coords (
-      tex + float2(-dx, 0.0),
-      tex + float2(0.0, 0.0),
-      tex + float2(dx, 0.0),
-      tex + float2(2.0 * dx, 0.0),
-      tex + float2(-dx, dy),
-      tex + float2(0.0, dy),
-      tex + float2(dx, dy),
-      tex + float2(2.0 * dx, dy),
-      tex.x * IN.output_size.x * IN.texture_size.x / IN.video_size.x,
-      tex * IN.texture_size
+      float4(tex + float2(-dx, 0.0), tex + float2(0.0, 0.0)),
+      float4(tex + float2(dx, 0.0), tex + float2(2.0 * dx, 0.0)),
+      float4(tex + float2(-dx, dy), tex + float2(0.0, dy)),
+      float4(tex + float2(dx, dy), tex + float2(2.0 * dx, dy)),
+      float3(tex.x * IN.output_size.x * IN.texture_size.x / IN.video_size.x, tex * IN.texture_size)
    );
 }
 
@@ -82,11 +72,11 @@ void main_vertex
 
 float4 main_fragment(in tex_coords co, uniform input IN, uniform sampler2D s0 : TEXUNIT0) : COLOR
 {
-   float2 uv_ratio = frac(co.ratio_scale);
+   float2 uv_ratio = frac(co.mod_factor_ratio_scale.yz);
    float3 col, col2;
 
-   float4x3 texes0 = float4x3(TEX2D(co.c01).xyz, TEX2D(co.c11).xyz, TEX2D(co.c21).xyz, TEX2D(co.c31).xyz);
-   float4x3 texes1 = float4x3(TEX2D(co.c02).xyz, TEX2D(co.c12).xyz, TEX2D(co.c22).xyz, TEX2D(co.c32).xyz);
+   float4x3 texes0 = float4x3(TEX2D(co.c01_11.xy).xyz, TEX2D(co.c01_11.zw).xyz, TEX2D(co.c21_31.xy).xyz, TEX2D(co.c21_31.zw).xyz);
+   float4x3 texes1 = float4x3(TEX2D(co.c02_12.xy).xyz, TEX2D(co.c02_12.zw).xyz, TEX2D(co.c22_32.xy).xyz, TEX2D(co.c22_32.zw).xyz);
 
    float4 coeffs = float4(1.0 + uv_ratio.x, uv_ratio.x, 1.0 - uv_ratio.x, 2.0 - uv_ratio.x) + 0.005;
    coeffs = sin(PI * coeffs) * sin(0.5 * PI * coeffs) / (coeffs * coeffs);
@@ -120,7 +110,7 @@ float4 main_fragment(in tex_coords co, uniform input IN, uniform sampler2D s0 : 
    weights2 = exp(pow2) / div2;
 
    float3 multi = col * weights + col2 * weights2;
-   float3 mcol = lerp(float3(1.0, 0.7, 1.0), float3(0.7, 1.0, 0.7), floor(fmod(co.mod_factor, 2.0)));
+   float3 mcol = lerp(float3(1.0, 0.7, 1.0), float3(0.7, 1.0, 0.7), floor(fmod(co.mod_factor_ratio_scale.x, 2.0)));
 
    return float4(pow(mcol * multi, float3(0.454545)), 1.0);
 }
