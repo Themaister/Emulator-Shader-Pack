@@ -80,26 +80,26 @@ void main_vertex
 #define PI 3.141592653589
 #define gamma 2.7
 
-float4 main_fragment(in tex_coords co, uniform input IN, uniform sampler2D s0 : TEXUNIT0, float2 tex : TEXCOORD) : COLOR
+float4 main_fragment(in tex_coords co, uniform input IN, uniform sampler2D s0 : TEXUNIT0) : COLOR
 {
    float2 uv_ratio = frac(co.ratio_scale);
    float3 col, col2;
 
-   float4x4 texes0 = float4x4(TEX2D(co.c01), TEX2D(co.c11), TEX2D(co.c21), TEX2D(co.c31));
-   float4x4 texes1 = float4x4(TEX2D(co.c02), TEX2D(co.c12), TEX2D(co.c22), TEX2D(co.c32));
+   float4x3 texes0 = float4x3(TEX2D(co.c01).xyz, TEX2D(co.c11).xyz, TEX2D(co.c21).xyz, TEX2D(co.c31).xyz);
+   float4x3 texes1 = float4x3(TEX2D(co.c02).xyz, TEX2D(co.c12).xyz, TEX2D(co.c22).xyz, TEX2D(co.c32).xyz);
 
    float4 coeffs = float4(1.0 + uv_ratio.x, uv_ratio.x, 1.0 - uv_ratio.x, 2.0 - uv_ratio.x) + 0.02;
    coeffs = sin(PI * coeffs) * sin(0.5 * PI * coeffs) / (coeffs * coeffs);
    coeffs = coeffs / dot(coeffs, float(1.0));
 
    float3 weights = float3(3.33 * uv_ratio.y);
-   float3 weights2 = float3(3.33 - (uv_ratio.y * 3.33));
+   float3 weights2 = float3(uv_ratio.y * -3.33 + 3.33);
 
    col = saturate(mul(coeffs, texes0));
    col2 = saturate(mul(coeffs, texes1));
 
-   float3 wid = float3(2.0) + 2.0 * pow(col, float3(4.0));
-   float3 wid2 = float3(2.0) + 2.0 * pow(col2, float3(4.0));
+   float3 wid = 2.0 * pow(col, float3(4.0)) + 2.0;
+   float3 wid2 = 2.0 * pow(col2, float3(4.0)) + 2.0;
 
    col = pow(col, float3(gamma));
    col2 = pow(col2, float3(gamma));
@@ -110,8 +110,8 @@ float4 main_fragment(in tex_coords co, uniform input IN, uniform sampler2D s0 : 
    float3 pow_mul1 = weights * sqrt1;
    float3 pow_mul2 = weights2 * sqrt2;
 
-   float3 div1 = 0.392 + 0.1320 * wid;
-   float3 div2 = 0.392 + 0.1320 * wid2;
+   float3 div1 = 0.1320 * wid + 0.392;
+   float3 div2 = 0.1320 * wid2 + 0.392;
 
    float3 pow1 = -pow(pow_mul1, wid);
    float3 pow2 = -pow(pow_mul2, wid2);
@@ -120,13 +120,7 @@ float4 main_fragment(in tex_coords co, uniform input IN, uniform sampler2D s0 : 
    weights2 = exp(pow2) / div2;
 
    float3 multi = col * weights + col2 * weights2;
-
-   // This seems to be very well optimized by the Cg compiler, better not touch :)
-   float3 mcol = float3(1.0);
-   if (fmod(co.mod_factor, 2.0) < 1.0)
-      mcol.g = 0.7;
-   else
-      mcol.rb = float2(0.7);
+   float3 mcol = lerp(float3(1.0, 0.7, 1.0), float3(0.7, 1.0, 0.7), floor(fmod(co.mod_factor, 2.0)));
 
    return float4(pow(mcol * multi, float3(0.454545)), 1.0);
 }
