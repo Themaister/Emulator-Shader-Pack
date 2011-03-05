@@ -80,13 +80,6 @@ void main_vertex
 #define PI 3.141592653589
 #define gamma 2.7
 
-// Gotta love branchless :3
-float4 less_than(float4 vals, float4 condition)
-{
-   float4 res = float4(1.0) + condition - vals; 
-   return saturate(floor(res));
-}
-
 float4 main_fragment(in tex_coords co, uniform input IN, uniform sampler2D s0 : TEXUNIT0, float2 tex : TEXCOORD) : COLOR
 {
    float2 uv_ratio = frac(co.ratio_scale);
@@ -96,8 +89,7 @@ float4 main_fragment(in tex_coords co, uniform input IN, uniform sampler2D s0 : 
    float4x4 texes1 = float4x4(TEX2D(co.c02), TEX2D(co.c12), TEX2D(co.c22), TEX2D(co.c32));
 
    float4 coeffs = float4(1.0 + uv_ratio.x, uv_ratio.x, 1.0 - uv_ratio.x, 2.0 - uv_ratio.x) + 0.02;
-   coeffs = lerp((sin(PI * coeffs) * sin(0.5 * PI * coeffs)) / (coeffs * coeffs), float4(1.0), less_than(abs(coeffs), float4(0.01)));
-
+   coeffs = sin(PI * coeffs) * sin(0.5 * PI * coeffs) / (coeffs * coeffs);
    coeffs = coeffs / dot(coeffs, float(1.0));
 
    float3 weights = float3(3.33 * uv_ratio.y);
