@@ -88,7 +88,7 @@ float4 main_fragment(in tex_coords co, uniform input IN, uniform sampler2D s0 : 
    float4x3 texes0 = float4x3(TEX2D(co.c01).xyz, TEX2D(co.c11).xyz, TEX2D(co.c21).xyz, TEX2D(co.c31).xyz);
    float4x3 texes1 = float4x3(TEX2D(co.c02).xyz, TEX2D(co.c12).xyz, TEX2D(co.c22).xyz, TEX2D(co.c32).xyz);
 
-   float4 coeffs = float4(1.0 + uv_ratio.x, uv_ratio.x, 1.0 - uv_ratio.x, 2.0 - uv_ratio.x) + 0.02;
+   float4 coeffs = float4(1.0 + uv_ratio.x, uv_ratio.x, 1.0 - uv_ratio.x, 2.0 - uv_ratio.x) + 0.005;
    coeffs = sin(PI * coeffs) * sin(0.5 * PI * coeffs) / (coeffs * coeffs);
    coeffs = coeffs / dot(coeffs, float(1.0));
 
