@@ -1,7 +1,7 @@
  /*
     cgwg's CRT shader
 
-    Copyright (C) 2010 cgwg
+    Copyright (C) 2010-2011 cgwg, Themaister
 
     This program is free software; you can redistribute it and/or modify it
     under the terms of the GNU General Public License as published by the Free
@@ -58,7 +58,7 @@ void main_vertex
    oPosition = mul(modelViewProj, position);
    oColor = color;
 
-   float2 delta = 0.99 / IN.texture_size;
+   float2 delta = 1.0 / IN.texture_size;
    float dx = delta.x;
    float dy = delta.y;
 
@@ -95,7 +95,7 @@ float4 main_fragment(in tex_coords co, uniform input IN, uniform sampler2D s0 : 
    float4x4 texes0 = float4x4(TEX2D(co.c01), TEX2D(co.c11), TEX2D(co.c21), TEX2D(co.c31));
    float4x4 texes1 = float4x4(TEX2D(co.c02), TEX2D(co.c12), TEX2D(co.c22), TEX2D(co.c32));
 
-   float4 coeffs = float4(1.0 + uv_ratio.x, uv_ratio.x, 1.0 - uv_ratio.x, 2.0 - uv_ratio.x);
+   float4 coeffs = float4(1.0 + uv_ratio.x, uv_ratio.x, 1.0 - uv_ratio.x, 2.0 - uv_ratio.x) + 0.02;
    coeffs = lerp((sin(PI * coeffs) * sin(0.5 * PI * coeffs)) / (coeffs * coeffs), float4(1.0), less_than(abs(coeffs), float4(0.01)));
 
    coeffs = coeffs / dot(coeffs, float(1.0));
