@@ -31,6 +31,7 @@ Uniforms:
       float2 video_size;
       float2 texture_size;
       float2 output_size;
+      float frame_count;
    };
 
    IN.video_size: The size of the actual video data in the texture, 
@@ -39,6 +40,8 @@ Uniforms:
    IN.texture_size: This is the size of the texture itself. Optimally power-of-two sized.
 
    IN.output_size: The size of the video output. This is the size of the viewport shown on screen.
+
+   IN.frame_count: A counter of the frame number. This increases with 1 every frame. This value is really an integer, but needs to be float for Cgs lack of integer uniforms.
 
    modelViewProj: This uniform needs to be set in vertex shader. 
    It is a uniform for the current MVP transform.
