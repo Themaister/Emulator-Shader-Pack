@@ -92,7 +92,7 @@ Genres:
 
 
 =============================
- -- Cg Meta-shader format --
+ -- Cg meta-shader format --
 =============================
 
 Rationale:
@@ -201,9 +201,9 @@ Parameters:
 
 
 For backend implementers:
-=================================
- -- Rending the shader chain: --
-=================================
+===================================
+ -- Rendering the shader chain: --
+===================================
 
 With all these options, the rendering pipeline can become somewhat complex.
 The meta-shader format greatly utilizes the possibility of offscreen
