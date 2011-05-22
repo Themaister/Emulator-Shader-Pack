@@ -232,8 +232,9 @@ is due to floating point inaccuracies that become far more apparent when not
 using power-of-two textures. If the absolute maximum size of the source image
 is known, then it is possible to preallocate the FBOs.
 
-Do note that the size of FBOn is determined by FBOn-1 when "source" scale
-is used, _not_ the source image size!
+Do note that the size of FBOn is determined by dimensions of FBOn-1 
+when "source" scale is used, _not_ the source image size! 
+Of course, FBO0 would use source image size, as there is no FBO-1 ;)
 
 I.e., with SNES there is a maximum width of 512 and height of 478.
 If a source relative scale of 3.0x is desired for first pass, it is thus safe to
