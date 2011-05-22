@@ -90,6 +90,9 @@ Genres:
    Misc:
       Shaders that do not directly fit into any of the above categories.
 
+   Meta:
+      Contains meta-shaders *.cgp.
+
 
 =============================
  -- Cg meta-shader format --

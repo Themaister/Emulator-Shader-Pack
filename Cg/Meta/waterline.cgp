@@ -1,0 +1,9 @@
+shaders = 2
+shader0 = ../TV/Scanline.cg
+shader1 = ../Misc/water.cg
+
+filter_linear0 = true
+filter_linear1 = true
+
+scale_type0 = source
+scale0 = 4.0
