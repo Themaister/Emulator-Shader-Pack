@@ -165,6 +165,11 @@ Parameters:
    scaling parameters in last pass if you care about the filtering
    option here.
 
+   In first pass, should no scaling factor be defined, the implementation
+   is free to choose a fitting scale. This means, that for a single pass
+   shader, it is allowed to set a scale, 
+   and then render to FBO, and stretch. (Rule above).
+
 -  scaleN, scale_xN, scale_yN (float/int):
    These values control the scaling params from scale_typeN.
    The values may be either floating or int depending on the type.
