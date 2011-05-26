@@ -113,6 +113,7 @@ many shaders without needing to redundantly copy code over. It also
 helps testing as it is possible to unit-test every pass separately 
 completely seamless.
 
+
 Format:
 
 The meta-shader format is based around the idea of a config file with the
@@ -149,26 +150,31 @@ Parameters:
                This value can change over time if the user 
                resizes his/her window!
    "absolute": Output size is statically defined to a certain size.
+               Useful for hi-res blenders or similiar.
 
    If no scale type is assumed, it is assumed that it is set to "source"
    with scaleN set to 1.0.
 
+   It is possible to set scale_type_xN and scale_type_yN to specialize
+   the scaling type in either direction. scale_typeN however
+   overrides both of these.
+
    Exceptions:
-   If scale_type is not set for the very last shader,
+   If no scale_type is set for the very last shader,
    it is assumed to output at the full resolution rather than assuming
    a scale of 1.0x, and bypasses any frame-buffer object rendering. 
    If there is only one shader, it is
    also considered to be the very last shader. If any scale option
    is defined, it has to go through a frame-buffer object, and
-   subsequently rendered to screen. The filtering option in this
-   case is implementation defined. It is encouraged to not have any
+   subsequently rendered to screen. The filtering option used when stretching
+   is implementation defined. It is encouraged to not have any
    scaling parameters in last pass if you care about the filtering
    option here.
 
    In first pass, should no scaling factor be defined, the implementation
    is free to choose a fitting scale. This means, that for a single pass
-   shader, it is allowed to set a scale, 
-   and then render to FBO, and stretch. (Rule above).
+   shader, it is allowed for the implementation to set a scale, 
+   render to FBO, and stretch. (Rule above).
 
 -  scaleN, scale_xN, scale_yN (float/int):
    These values control the scaling params from scale_typeN.
@@ -179,6 +185,10 @@ Parameters:
    scale_xN and scale_yN controls scaling properties for the directions
    separately. Should only one of these be defined, the other direction
    will assume a "source" scale with value 1.0, i.e. no change in resolution.
+
+   Should scale_type_xN and scale_type_yN be set to different values,
+   the use of scaleN is undefined (i.e. if X-type is absolute (takes int),
+   and Y-type is source (takes float).)
 
 -  textures (multiple strings):
    The textures param defines one or more lookup textures IDs.
@@ -205,7 +215,33 @@ Parameters:
    of the texture in TEXUNIT0 might not be as convenient,
    the texture coordinates for all lookup textures will be found
    in TEXCOORD1. (Note: You cannot assume which texture unit the
-   lookup textures will be bound to!)
+   lookup textures will be bound to however!)
+
+   The implementation only guarantees to be able to load plain .tga
+   files. It may provide possibilities to load i.e. .png.
+
+
+Multi-pass uniforms:
+
+   During multi-pass rendering, some additional uniforms are available.
+
+   With multi-pass rendering, it is possible to utilize the resulting output
+   for every pass that came before it, including the unfiltered input.
+   This allows for an additive approach to shading rather than
+   serial style.
+
+   The unfiltered input can be found in the ORIG struct:
+
+   uniform sampler2D ORIG.texture: Texture handle. MUST NOT be set to a predefined texture unit.
+   uniform float2 ORIG.video_size: The video size of original frame.
+   uniform float2 ORIG.texture_size: The texture size of orignial frame.
+   in float2 ORIG.tex_coord: An attribute input holding the texture coordinates of
+                             original frame.
+
+   PASS%u: This struct holds the same data as the ORIG, although the result of passes
+   {1, 2, 3 ...}, i.e. PASS1.texture holds the result of the first shader pass.
+   If rendering pass N, passes {1, ..., N-2} are available. (N-1 being input in the regular
+   IN structure).
 
 
 For backend implementers:
