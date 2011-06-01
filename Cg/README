@@ -40,7 +40,6 @@ Uniforms:
       float2 video_size;
       float2 texture_size;
       float2 output_size;
-      float2 pixel_size;
       float frame_count;
    };
 
@@ -53,12 +52,6 @@ Uniforms:
 
    IN.output_size: The size of the video output. 
    This is the size of the viewport shown on screen.
-
-   IN.pixel_size: This contains the offset for fetching the
-   pixel in the texture which is found top-right to the current
-   coordinate. It is screen relative. Depending on the host
-   environment, these coordinates might be negative, to compensate
-   for certain API behavior. It is typically set to 1.0 / IN.texture_size.
 
    IN.frame_count: A counter of the frame number. 
    This increases with 1 every frame. 
@@ -242,7 +235,6 @@ Multi-pass uniforms:
    uniform sampler2D ORIG.texture: Texture handle. MUST NOT be set to a predefined texture unit.
    uniform float2 ORIG.video_size: The video size of original frame.
    uniform float2 ORIG.texture_size: The texture size of original frame.
-   uniform float2 ORIG.pixel_size: Pixel size of original frame.
    in float2 ORIG.tex_coord: An attribute input holding the texture coordinates of
                              original frame.
 
