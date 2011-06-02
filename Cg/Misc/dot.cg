@@ -65,7 +65,7 @@ float color_bloom(float3 color)
 {
    const float3 gray_coeff = float3(0.30, 0.59, 0.11);
    float bright = dot(color, gray_coeff);
-   return mix(1.0 + shine, 1.0 - shine, bright);
+   return lerp(1.0 + shine, 1.0 - shine, bright);
 }
 
 float3 lookup(float2 pixel_no, float offset_x, float offset_y, float3 color)
