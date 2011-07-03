@@ -25,6 +25,12 @@ Texture unit:
    The shaders can deal with the actual picture data not 
    filling out the entire texture.
 
+   The texture coordinate origin is defined to be top-left oriented, i.e.
+   a texture coordinate of (0, 0) will always refer to the top-left pixel of
+   the visible frame.
+   The implementation must always ensure that this ordering is held for any
+   texture that the shader has access to.
+
 Uniforms:
    Some parameters will need to be passed to all shaders, 
    both vertex and fragment program.
@@ -56,7 +62,7 @@ Uniforms:
    IN.frame_count: A counter of the frame number. 
    This increases with 1 every frame. 
    This value is really an integer, 
-   but needs to be float for Cgs lack of integer uniforms.
+   but needs to be float for CGs lack of integer uniforms.
 
    modelViewProj: This uniform needs to be set in vertex shader. 
    It is a uniform for the current MVP transform.
@@ -138,9 +144,13 @@ Parameters:
    The path is relative to the directory the meta-shader
    was loaded from.
 
--  filter_linearN (boolean): This param defines how the input texture
-   in TEXUNIT0 will be filtered for a given pass.
+-  filter_linearN (boolean): This parameter defines how the texture of the 
+   result of pass N will be filtered.
+   N = 0 (pass 0) is the raw input frame,
+   N = 1 is result of the first pass, etc.
    (A boolean value here might be true/false/1/0).
+   Should this value not be defined, the filtering option is
+   implementation defined.
 
 -  scale_typeN (string): This can be set to one of these values:
    "source":   Output size of shader pass N is relative to the input size
@@ -217,8 +227,9 @@ Parameters:
    in TEXCOORD1. (Note: You cannot assume which texture unit the
    lookup textures will be bound to however!)
 
-   The implementation only guarantees to be able to load plain .tga
-   files. It may provide possibilities to load i.e. .png.
+   The implementation only guarantees to be able to
+   load plain top-left non-RLE .tga files. 
+   It may provide possibilities to load i.e. .png and other popular formats.
 
 
 Multi-pass uniforms:
@@ -232,16 +243,23 @@ Multi-pass uniforms:
 
    The unfiltered input can be found in the ORIG struct:
 
-   uniform sampler2D ORIG.texture: Texture handle. MUST NOT be set to a predefined texture unit.
+   uniform sampler2D ORIG.texture: Texture handle. 
+   Must not be set to a predefined texture unit.
    uniform float2 ORIG.video_size: The video size of original frame.
    uniform float2 ORIG.texture_size: The texture size of original frame.
-   in float2 ORIG.tex_coord: An attribute input holding the texture coordinates of
-                             original frame.
+   in float2 ORIG.tex_coord: An attribute input holding the texture
+                             coordinates of original frame.
 
-   PASS%u: This struct holds the same data as the ORIG, although the result of passes
-   {1, 2, 3 ...}, i.e. PASS1.texture holds the result of the first shader pass.
-   If rendering pass N, passes {1, ..., N-2} are available. (N-1 being input in the regular
-   IN structure).
+   PASS%u: This struct holds the same data as the ORIG struct,
+   although the result of passes {1, 2, 3 ...}, i.e.
+   PASS1.texture holds the result of the first shader pass.
+   If rendering pass N, passes {1, ..., N-2} are available.
+   (N-1 being input in the regular IN structure).
+
+   PREV (not in final spec yet, may change semantics or be removed): 
+   This struct holds the same data as the ORIG struct,
+   and corresponds to the raw input image from the previous frame.
+   Useful for motion blur.
 
 
 For backend implementers:

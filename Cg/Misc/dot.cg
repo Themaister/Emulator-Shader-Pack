@@ -2,7 +2,6 @@
    Author: Themaister
    License: Public domain
 */
-
 struct tex_coord
 {
    float4 c00_10;
@@ -49,6 +48,7 @@ void main_vertex
       tex,
       tex * IN.texture_size
    );
+
 }
 
 const float gamma = 2.4;
