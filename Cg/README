@@ -47,6 +47,7 @@ Uniforms:
       float2 texture_size;
       float2 output_size;
       float frame_count;
+      float frame_direction;
    };
 
    IN.video_size: The size of the actual video data in the texture, 
@@ -63,6 +64,10 @@ Uniforms:
    This increases with 1 every frame. 
    This value is really an integer, 
    but needs to be float for CGs lack of integer uniforms.
+
+   IN.frame_direction: A number telling which direction
+   the frames are flowing. For regular playing, this value should be 1.0.
+   While the game is rewinding, this value should be -1.0.
 
    modelViewProj: This uniform needs to be set in vertex shader. 
    It is a uniform for the current MVP transform.
