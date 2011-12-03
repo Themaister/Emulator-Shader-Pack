@@ -1,0 +1,4 @@
+shaders = 2
+shader0 = coordinate-system-lut.cg
+shader1 = coordinate-system-multipass.cg
+

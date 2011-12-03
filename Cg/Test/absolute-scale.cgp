@@ -1,0 +1,10 @@
+shaders = 2
+shader0 = coordinate-system-lut.cg
+shader1 = dummy.cg
+
+scale_type0 = absolute
+scale_x0 = 2
+scale_y0 = 4
+
+filter_linear1 = false
+
