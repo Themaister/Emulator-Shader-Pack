@@ -261,10 +261,15 @@ Multi-pass uniforms:
    If rendering pass N, passes {1, ..., N-2} are available.
    (N-1 being input in the regular IN structure).
 
-   PREV (not in final spec yet, may change semantics or be removed): 
+   PREV: 
    This struct holds the same data as the ORIG struct,
    and corresponds to the raw input image from the previous frame.
    Useful for motion blur.
+
+   PREV1..6:
+   Similar struct as PREV, but holds the data for passes further back in time.
+   PREV1 is the frame before PREV, PREV2 the frame before that again, and so on.
+   This allows up to 8-tap motion blur.
 
 
 For backend implementers:
