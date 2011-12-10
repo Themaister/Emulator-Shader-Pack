@@ -1,0 +1,33 @@
+/*
+   Author: Themaister
+   License: Public domain
+*/
+
+struct old_pass
+{
+   float2 tex_coord;
+   uniform sampler2D texture;
+};
+
+void main_vertex
+(
+   float4 position : POSITION,
+   out float4 oPosition : POSITION,
+   uniform float4x4 modelViewProj,
+
+   float4 color : COLOR,
+   out float4 oColor : COLOR,
+
+   old_pass PASS1,
+   out float2 tex_coord
+)
+{
+   oPosition = mul(modelViewProj, position);
+   oColor = color;
+   tex_coord = PASS1.tex_coord;
+}
+
+float4 main_fragment (old_pass PASS1, in float2 tex_coord) : COLOR
+{
+   return tex2D(PASS1.texture, tex_coord);
+}
