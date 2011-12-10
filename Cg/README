@@ -22,14 +22,19 @@ Entry points:
 Texture unit:
    All shaders work on texture unit 0 (the default). 2D textures must be used.
    Power-of-two sized textures are recommended for optimal visual quality.
-   The shaders can deal with the actual picture data not 
+   The shaders must deal with the actual picture data not 
    filling out the entire texture.
+   Incoming texture coordinates and uniforms provide this information.
 
    The texture coordinate origin is defined to be top-left oriented, i.e.
    a texture coordinate of (0, 0) will always refer to the top-left pixel of
-   the visible frame.
+   the visible frame. This is opposite of what most graphical APIs expect.
    The implementation must always ensure that this ordering is held for any
    texture that the shader has access to.
+
+   Every texture bound for a shader must have black border mode set.
+   I.e. sampling a texel outside the given texture coordinates must always return a pixel
+   with RGBA values (0, 0, 0, 0).
 
 Uniforms:
    Some parameters will need to be passed to all shaders, 
@@ -49,6 +54,12 @@ Uniforms:
       float frame_count;
       float frame_direction;
    };
+
+   TEXCOORD0: Texture coordinates for the current input frame will be passed in TEXCOORD0.
+   (TEXCOORD is a valid alias for TEXCOORD0).
+
+   COLOR0: Although legal, no data of interest is passed here.
+   You cannot assume anything about data in this stream.
 
    IN.video_size: The size of the actual video data in the texture, 
    e.g for a SNES this will be generally 
