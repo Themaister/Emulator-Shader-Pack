@@ -1,0 +1,13 @@
+shaders = 2
+shader0 = ../../Enhance/waterpaint.cg
+shader1 = border-mini.cg
+
+scale_type0 = absolute
+scale_x0 = 256
+scale_y0 = 224
+filter_linear0 = false
+
+textures = bg
+bg = checkerboard-mini.tga
+bg_linear = true
+

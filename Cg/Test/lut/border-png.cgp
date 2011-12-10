@@ -1,0 +1,12 @@
+shaders = 2
+shader0 = ../../Enhance/waterpaint.cg
+shader1 = border.cg
+
+scale_type0 = source
+scale0 = 4.0
+filter_linear0 = false
+
+textures = bg
+bg = checkerboard.png
+bg_linear = true
+
