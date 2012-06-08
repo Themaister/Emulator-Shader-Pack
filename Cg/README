@@ -11,8 +11,7 @@ The shaders all follow a convention which must be followed by the implementer
 of an OGL/D3D backend.
 
 Known implementations of this spec are currently:
-- SSNES
-- Various PS3 emulator ports (SNES9x, FCEUX, Genesis ...)
+- RetroArch (on PC, PS3, partly XBox 360)
 - SNES9x (Win32 port)
 
 Entry points:
