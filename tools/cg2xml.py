@@ -299,7 +299,16 @@ def main():
       failed_files = []
       for dirname, _, filenames in os.walk(sys.argv[1]):
          for source in filter(lambda path: 'cg' == path.split('.')[-1], [os.path.join(dirname, filename) for filename in filenames]):
-            dest = os.path.join(sys.argv[2], os.path.split(source.replace('.cg', '.shader'))[1])
+
+            dest = os.path.join(sys.argv[2], source.replace(sys.argv[1], '')[1:]).replace('.cg', '.shader')
+            dirpath = os.path.split(dest)[0]
+            print('Dirpath:', dirpath)
+            if not os.path.isdir(dirpath):
+               try:
+                  os.makedirs(dirpath)
+               except OSError as e:
+                  if e.errno != errno.EEXIST:
+                     raise
 
             try:
                ret = convert(source, dest)
