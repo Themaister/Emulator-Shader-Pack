@@ -8,6 +8,7 @@ License: Public domain
 
 import sys
 import os
+import errno
 import subprocess
 
 def remove_comments(source_lines):
@@ -195,14 +196,7 @@ def validate_shader(source, target):
    print('CGC:', stderr_ret.decode())
    return p.returncode == 0
 
-def main():
-   if len(sys.argv) != 3:
-      print('Usage: {} prog.cg prog.shader'.format(sys.argv[0]))
-      return 1
-
-   source = sys.argv[1]
-   dest   = sys.argv[2]
-
+def convert(source, dest):
    with os.popen('cgc -profile glesv -entry main_vertex {}'.format(source)) as f:
       vertex_source = f.read()
       ret = f.close()
@@ -269,6 +263,46 @@ def main():
       f.write('</shader>\n')
 
    return 0
+
+def main():
+   if len(sys.argv) != 3:
+      print('Usage: {} prog.cg prog.shader'.format(sys.argv[0]))
+      return 1
+
+   if os.path.isdir(sys.argv[1]):
+      try:
+         os.makedirs(sys.argv[2])
+      except OSError as e:
+         if e.errno != errno.EEXIST:
+            raise
+
+      failed_cnt = 0
+      success_cnt = 0
+      failed_files = []
+      for dirname, _, filenames in os.walk(sys.argv[1]):
+         for source in filter(lambda path: 'cg' == path.split('.')[-1], [os.path.join(dirname, filename) for filename in filenames]):
+            dest = os.path.join(sys.argv[2], os.path.split(source.replace('.cg', '.shader'))[1])
+
+            ret = convert(source, dest)
+            print(source, '->', dest, '...', 'suceeded!' if ret == 0 else 'failed!')
+
+            if ret == 0:
+               success_cnt += 1
+            else:
+               failed_cnt += 1
+               failed_files.append(source)
+
+      print(success_cnt, 'shaders converted successfully.')
+      print(failed_cnt, 'shaders failed.')
+      if failed_cnt > 0:
+         print('Failed shaders:')
+         for path in failed_files:
+            print(path)
+
+   else:
+      source = sys.argv[1]
+      dest   = sys.argv[2]
+      sys.exit(convert(source, dest))
 
 if __name__ == '__main__':
    sys.exit(main())
