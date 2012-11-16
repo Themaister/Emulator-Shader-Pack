@@ -11,6 +11,12 @@ import os
 import errno
 import subprocess
 
+batch_mode = False
+
+def log(*arg):
+   if not batch_mode:
+      print(*arg)
+
 def remove_comments(source_lines):
    ret = []
    killed_comments = [line.split('//')[0] for line in source_lines]
@@ -49,7 +55,7 @@ def translate_varyings(varyings, source):
    for varying in varyings:
       for line in source:
          if (varying in line) and ('//var' in line):
-            print('Found line for', varying + ':', line)
+            log('Found line for', varying + ':', line)
             dictionary[varying] = line.split(':')[0].split('.')[-1].strip()
             break
 
@@ -63,7 +69,7 @@ def destructify_varyings(source):
       if 'struct' in line:
          struct_types.append(line.split(' ')[1])
 
-   print('Struct types:', struct_types)
+   log('Struct types:', struct_types)
 
    last_struct_decl_line = 0
    varyings = []
@@ -78,7 +84,7 @@ def destructify_varyings(source):
             varyings.extend(['varying ' + string for string in source[i + 1 : j]])
             names = [string.strip().split(' ')[1].split(';')[0].strip() for string in source[i + 1 : j]]
             varyings_name.extend(names)
-            print('Found elements in struct', struct + ':', names)
+            log('Found elements in struct', struct + ':', names)
             last_struct_decl_line = j
 
    varyings_tmp = varyings
@@ -100,11 +106,11 @@ def destructify_varyings(source):
       for struct in struct_types:
          if struct in line:
             variable = line.split(' ')[1].split(';')[0]
-            print('Found struct variable for', struct + ':', variable)
+            log('Found struct variable for', struct + ':', variable)
             variables.append(variable)
 
    varyings_dict = translate_varyings(varyings_name, source)
-   print('Varyings dict:', varyings_dict)
+   log('Varyings dict:', varyings_dict)
 
    # Append all varyings. Keep the structs as they might be used as regular values.
    for varying in varyings:
@@ -174,7 +180,7 @@ def hack_source_fragment(source):
    for line in source:
       if ('TEXUNIT0' in line) and ('semantic' not in line):
          sampler = line.split(':')[2].split(' ')[1]
-         print('Fragment: Sampler:', sampler)
+         log('Fragment: Sampler:', sampler)
          break
 
    ret = []
@@ -185,31 +191,38 @@ def hack_source_fragment(source):
    return ret
 
 def validate_shader(source, target):
-   print('Shader:')
-   print('===')
-   print(source)
-   print('===')
-
    command = ['cgc', '-noentry', '-ogles']
    p = subprocess.Popen(command, stdin = subprocess.PIPE, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
    stdout_ret, stderr_ret = p.communicate(source.encode())
-   print('CGC:', stderr_ret.decode())
+
+   log('Shader:')
+   log('===')
+   log(source)
+   log('===')
+   log('CGC:', stderr_ret.decode())
+
    return p.returncode == 0
 
 def convert(source, dest):
-   with os.popen('cgc -profile glesv -entry main_vertex {}'.format(source)) as f:
-      vertex_source = f.read()
-      ret = f.close()
-      if ret is not None:
-         print('Vertex compilation failed ...')
-         return 1
+   vert_cmd = ['cgc', '-profile', 'glesv', '-entry', 'main_vertex', source]
+   p = subprocess.Popen(vert_cmd, stderr = subprocess.PIPE, stdout = subprocess.PIPE)
+   vertex_source, stderr_ret = p.communicate()
+   log(stderr_ret.decode())
+   vertex_source = vertex_source.decode()
 
-   with os.popen('cgc -profile glesf -entry main_fragment {}'.format(source)) as f:
-      fragment_source = f.read()
-      ret = f.close()
-      if ret is not None:
-         print('Fragment compilation failed ...')
-         return 1
+   if p.returncode != 0:
+      log('Vertex compilation failed ...')
+      return 1
+
+   frag_cmd = ['cgc', '-profile', 'glesf', '-entry', 'main_fragment', source]
+   p = subprocess.Popen(frag_cmd, stderr = subprocess.PIPE, stdout = subprocess.PIPE)
+   fragment_source, stderr_ret = p.communicate()
+   log(stderr_ret.decode())
+   fragment_source = fragment_source.decode()
+
+   if p.returncode != 0:
+      log('Vertex compilation failed ...')
+      return 1
 
    vertex_source   = replace_global_vertex(vertex_source)
    fragment_source = replace_global_fragment(fragment_source)
@@ -236,11 +249,11 @@ def convert(source, dest):
    out_fragment = '\n'.join(['#ifdef GL_ES', 'precision mediump float;', '#endif'] + fragment_source)
 
    if not validate_shader(out_vertex, 'glesv'):
-      print('Vertex shader does not compile ...')
+      log('Vertex shader does not compile ...')
       return 1
 
    if not validate_shader(out_fragment, 'glesf'):
-      print('Fragment shader does not compile ...')
+      log('Fragment shader does not compile ...')
       return 1
 
    with open(dest, 'w') as f:
@@ -270,6 +283,8 @@ def main():
       return 1
 
    if os.path.isdir(sys.argv[1]):
+      global batch_mode
+      batch_mode = True
       try:
          os.makedirs(sys.argv[2])
       except OSError as e:
@@ -283,14 +298,19 @@ def main():
          for source in filter(lambda path: 'cg' == path.split('.')[-1], [os.path.join(dirname, filename) for filename in filenames]):
             dest = os.path.join(sys.argv[2], os.path.split(source.replace('.cg', '.shader'))[1])
 
-            ret = convert(source, dest)
-            print(source, '->', dest, '...', 'suceeded!' if ret == 0 else 'failed!')
+            try:
+               ret = convert(source, dest)
+               print(source, '->', dest, '...', 'suceeded!' if ret == 0 else 'failed!')
 
-            if ret == 0:
-               success_cnt += 1
-            else:
-               failed_cnt += 1
+               if ret == 0:
+                  success_cnt += 1
+               else:
+                  failed_cnt += 1
+                  failed_files.append(source)
+            except Exception as e:
+               print(e)
                failed_files.append(source)
+               failed_cnt += 1
 
       print(success_cnt, 'shaders converted successfully.')
       print(failed_cnt, 'shaders failed.')
