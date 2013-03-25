@@ -1,0 +1,5 @@
+shaders = 1
+shader0 = dummy.cg
+scale_type0 = source
+scale0 = 2.0
+float_framebuffer0 = true
