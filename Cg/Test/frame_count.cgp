@@ -1,0 +1,4 @@
+shaders = 1
+shader0 = frame_count.cg
+
+frame_count_mod0 = 10
