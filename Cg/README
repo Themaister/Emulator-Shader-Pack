@@ -167,6 +167,15 @@ Parameters:
    Should this value not be defined, the filtering option is
    implementation defined.
 
+-  float_framebufferN (boolean): This parameters defines if shader N
+   should render to a 32-bit floating point buffer.
+   This only takes effect if shaderN is actually rendered to an FBO.
+   This is useful for shaders which have to store FBO values outside [0, 1] range.
+
+-  frame_count_modN (int): This positive parameter defines
+   which modulo to apply to IN.frame_count.
+   IN.frame_count will take the value frame_count % frame_count_modN.
+
 -  scale_typeN (string): This can be set to one of these values:
    "source":   Output size of shader pass N is relative to the input size
                as found in IN.video_size. Value is float.
