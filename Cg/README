@@ -139,7 +139,9 @@ Format:
 
 The meta-shader format is based around the idea of a config file with the
 format: key = value. Values with spaces need to be wrapped in quotes:
-key = "value stuff". No .ini sections or similar are allowed.
+key = "value stuff". No .ini sections or similar are allowed. Meta-shaders
+may include comments, prefixed by the "#" character, both on their own in
+an otherwise empty line or at the end of a key = value pair.
 
 The meta-format has four purposes:
 -  Combine several standalone .cg shaders into a multipass shader.
