@@ -1,0 +1,8 @@
+shaders = 2
+shader0 = dummy.cg
+shader1 = orig.cg
+
+scale_type0 = source
+scale0 = 1.0
+filter_linear0 = true
+filter_linear1 = true
